@@ -3,22 +3,48 @@
   <head>
     <meta charset="utf-8">
     <title>robots.txt checker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script type="module">
       import init, { is_allowed } from "./pkg/robots_txt_wasm.js";
-      console.log(init, is_allowed);
+      const $form = document.forms['form'];
 
-      async function exec() {
+      async function run(txt, ua, url) {
         await init();
-
-        const robots_txt = "User-agent: Googlebot\nDisallow: /private/";
-        console.log(is_allowed(robots_txt, "Googlebot", "/"));
-        console.log(is_allowed(robots_txt, "Googlebot", "/private"));
-        console.log(is_allowed(robots_txt, "Googlebot", "/private/"));
-        console.log(is_allowed(robots_txt, "Bingbot", "/private/"));
+        $form.onsubmit = (e) => {
+          e.preventDefault();
+          const data = new FormData($form);
+          const { body, useragent, url } = Object.fromEntries(data.entries());
+          const isAllowed = is_allowed(body, useragent, url);
+          console.log(isAllowed);
+          alert(`"${url} os "${isAllowed ? 'ALLOWED' : 'DISALLOWED'} to be crawled by ${useragent}`);
+        };
       }
-
-      exec();
+      run();
     </script>
   </head>
-  <body>Hi!</body>
+  <body class="p-5 bg-white dark:bg-gray-900 antialiased">
+      <div class="mt-40">
+        <div className="flex justify-center mt-32 mx-10 mb-10">
+          <form class="max-w-sm mx-auto" id="form" name="form">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-10">
+              robots.txt tester
+            </h1>
+            <div class="mb-5">
+              <label for="body" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">robots.txt</label>
+              <textarea name="body" id="body" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Paste robots.txt ..." required></textarea>
+            </div>
+            <div class="mb-5">
+              <label for="useragent" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">User-Agent</label>
+              <input name="useragent" type="text" id="useragent" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Googlebot" required />
+            </div>
+            <div class="mb-5">
+              <label for="url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">URL</label>
+              <input name="url" type="text" id="url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="https://example.com/path/to" required />
+            </div>
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+          </form>
+        </div>
+      </div>
+  </body>
 </html>
