@@ -4,47 +4,76 @@
     <meta charset="utf-8">
     <title>robots.txt checker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.css" rel="stylesheet" />
+    <style>
+      textarea {
+        field-sizing: content;
+        min-height: 6lh;
+        max-height: 50vh;
+        scrollbar-width: thin;
+      }
+      #allowed, #disallowed {
+        display: none;
+      }
+      [data-status="allowed"] > #allowed {
+        display: inline;
+      }
+      [data-status="disallowed"] > #disallowed {
+        display: inline;
+      }
+    </style>
     <script type="module">
-      import init, { is_allowed } from "./pkg/robots_txt_wasm.js";
+      import init, { is_allowed, validate } from "./pkg/robots_txt_wasm.js";
       const $form = document.forms['form'];
+      const $badge = document.querySelector('[data-status]');
 
       async function run(txt, ua, url) {
         await init();
         $form.onsubmit = (e) => {
           e.preventDefault();
+          // reset
+          $badge.dataset.status = "";
+
           const data = new FormData($form);
           const { body, useragent, url } = Object.fromEntries(data.entries());
+
+          // validate
+          const valid_lines = validate(body);
+          console.log(Array.from(valid_lines));
+
           const isAllowed = is_allowed(body, useragent, url);
-          console.log(isAllowed);
-          alert(`"${url} os "${isAllowed ? 'ALLOWED' : 'DISALLOWED'} to be crawled by ${useragent}`);
+          $badge.dataset.status = isAllowed ? "allowed" : "disallowed";
         };
       }
       run();
     </script>
   </head>
   <body class="p-5 bg-white dark:bg-gray-900 antialiased">
-      <div class="mt-40">
-        <div className="flex justify-center mt-32 mx-10 mb-10">
-          <form class="max-w-sm mx-auto" id="form" name="form">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-10">
-              robots.txt tester
-            </h1>
-            <div class="mb-5">
-              <label for="body" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">robots.txt</label>
-              <textarea name="body" id="body" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Paste robots.txt ..." required></textarea>
-            </div>
-            <div class="mb-5">
-              <label for="useragent" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">User-Agent</label>
-              <input name="useragent" type="text" id="useragent" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Googlebot" required />
-            </div>
-            <div class="mb-5">
-              <label for="url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">URL</label>
-              <input name="url" type="text" id="url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="https://example.com/path/to" required />
-            </div>
-            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
-          </form>
+    <form class="max-w-sm mx-auto shrink" id="form" name="form">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-10">
+        robots.txt tester
+      </h1>
+      <div class="mb-5">
+        <label for="body" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">robots.txt</label>
+        <textarea name="body" id="body" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Paste robots.txt ..." required></textarea>
+      </div>
+      <div class="mb-5">
+        <label for="useragent" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">User-Agent</label>
+        <input name="useragent" type="text" id="useragent" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Googlebot" required />
+      </div>
+      <div class="mb-5">
+        <label for="url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">URL</label>
+        <input name="url" type="text" id="url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="https://example.com/path/to" required />
+      </div>
+      <div class="flex flex-row justify-between items-baseline">
+        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+
+        <div data-status="">
+          <span id="allowed" class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-green-900 dark:text-green-300">ALLOWED</span>
+          <span id="disallowed" class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300">DISALLOWED</span>
         </div>
       </div>
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
   </body>
 </html>
