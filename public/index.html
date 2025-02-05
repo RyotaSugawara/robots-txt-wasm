@@ -21,35 +21,29 @@
       [data-status="disallowed"] > #disallowed {
         display: inline;
       }
-    </style>
-    <script type="module">
-      import init, { is_allowed, validate } from "./pkg/robots_txt_wasm.js";
-      const $form = document.forms['form'];
-      const $badge = document.querySelector('[data-status]');
-
-      async function run(txt, ua, url) {
-        await init();
-        $form.onsubmit = (e) => {
-          e.preventDefault();
-          // reset
-          $badge.dataset.status = "";
-
-          const data = new FormData($form);
-          const { body, useragent, url } = Object.fromEntries(data.entries());
-
-          // validate
-          const valid_lines = validate(body);
-          console.log(Array.from(valid_lines));
-
-          const isAllowed = is_allowed(body, useragent, url);
-          $badge.dataset.status = isAllowed ? "allowed" : "disallowed";
-        };
+      #result {
+        counter-reset: line-number;
       }
-      run();
-    </script>
+      #result > div {
+        line-height: 1.6;
+        height: 1.6em;
+        counter-increment: line-number;
+        display: list-item;
+        padding-left: 1rem;
+        margin-left: 1rem;
+      }
+      #result > div::marker {
+        content: counter(line-number);
+        color: #aaa;
+      }
+      #result > div.invalid {
+        background: rgba(255, 0, 0, 0.3);
+      }
+    </style>
+    <script type="module" src="./index.js"></script>
   </head>
   <body class="p-5 bg-white dark:bg-gray-900 antialiased">
-    <form class="max-w-sm mx-auto shrink" id="form" name="form">
+    <form class="max-w-sm mx-auto" id="form" name="form">
       <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-10">
         robots.txt tester
       </h1>
@@ -67,13 +61,18 @@
       </div>
       <div class="flex flex-row justify-between items-baseline">
         <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
-
+      </div>
+    </form>
+    <div class="max-w-sm mx-auto mt-10">
+      <div class="flex flex-row justify-between items-center mb-2">
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Result:</h3>
         <div data-status="">
           <span id="allowed" class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-green-900 dark:text-green-300">ALLOWED</span>
           <span id="disallowed" class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300">DISALLOWED</span>
         </div>
       </div>
-    </form>
+      <pre id="result" class="block max-w-sm p-6 text-gray-900 dark:text-white bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"></pre>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
   </body>
 </html>

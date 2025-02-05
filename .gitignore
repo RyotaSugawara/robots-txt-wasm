@@ -1,2 +1,3 @@
 /target
-/dist
+!/public/index.html
+!/public/index.js
